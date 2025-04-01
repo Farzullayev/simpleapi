@@ -18,7 +18,20 @@ const addProduct = (res, name, price) => {
     res.status(201).json({ message: "Product added", id: result.insertId });
   });
 };
-
+const getProduct = (res, id) => {
+  con.query("SELECT * FROM product WHERE id = ?", [id], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (result.length === 0) return res.status(404).json({ error: "Product not found" });
+    res.status(200).json({ message: "Product removed"});
+  });
+}
+const remProduct = (res, id) => {
+  con.query("DELETE FROM product WHERE id = ?", [id], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (result.length === 0) return res.status(404).json({ error: "Product not found" });
+    res.status(200).json({ data: result[0] });
+  });
+} 
 app.post("/api/product/add", (req, res) => {
   const { name, price } = req.body;
   if (!name || typeof name !== "string" || name.length > 255) return res.status(400).json({ error: "Invalid product name" });
@@ -38,17 +51,17 @@ app.post("/api/product/add", (req, res) => {
     }
   });
 });
+app.post("/api/product/delete", (req, res) => {
+  let { id } = req.body;
+  if (!id || isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+  id = Number(id);
+  remProduct(res, id);
+});
 
 app.post("/api/product/get", (req, res) => {
   let { id } = req.body;
   if (!id || isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
   id = Number(id);
-
-  con.query("SELECT * FROM product WHERE id = ?", [id], (err, result) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (result.length === 0) return res.status(404).json({ error: "Product not found" });
-    res.status(200).json({ data: result[0] });
-  });
+  getProduct(res, id);
 });
-
 app.listen(3000, () => console.log("Server running on port 3000"));
